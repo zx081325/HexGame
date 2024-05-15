@@ -20,6 +20,7 @@
             margin-bottom: 20px;
             font-size: 2.5rem;
             color: #333;
+            text-align: center; /* Add this line */
         }
 
         #board-wrapper {
@@ -57,7 +58,7 @@
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
             background: linear-gradient(to bottom right, #f0f0f0, #ccc);
             transition: background 0.3s, transform 0.2s;
-			border: 1px solid #adb5bd;;
+            border: 1px solid #adb5bd;
         }
 
         .hex:hover {
@@ -73,7 +74,7 @@
             position: absolute;
             width: 100%;
             height: 100%;
-            border: 1px solid #adb5bd;;
+            border: 1px solid #adb5bd;
         }
 
         .hex:before {
@@ -88,7 +89,7 @@
             position: absolute;
             width: 100%;
             height: 100%;
-            border: 1px solid #adb5bd;;
+            border: 1px solid #adb5bd;
             clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
             transform: rotate(0deg);
         }
@@ -121,6 +122,14 @@
             justify-content: left;
         }
 
+        .cell-content {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+        }
+
         @media (max-width: 600px) {
             body {
                 padding: 10px;
@@ -137,68 +146,44 @@
     </style>
 </head>
 <body>
-    <h1>Hex Game</h1>
-    <div id="board-wrapper">
-        <div id="board"></div>
+    <div id="app">
+        <h1>Hex Game</h1>
+        <div id="board-wrapper">
+            <div id="board">
+                <div class="row">
+                    <div class="col-label"></div>
+                    <div class="col-label" v-for="col in boardSize" :key="col">{{ String.fromCharCode(64 + col) }}</div>
+                </div>
+                <div class="row" v-for="(row, rowIndex) in board" :key="rowIndex" :style="{ marginLeft: rowIndex * 17.82 + 'px', marginTop: rowIndex > 0 ? '-11px' : '0px' }">
+                    <div class="row-label">{{ rowIndex + 1 }}</div>
+                    <div class="hex" v-for="(cell, colIndex) in row" :key="colIndex" :class="cell.class" :style="{ marginLeft: colIndex > 0 ? '-1px' : '0px' }" @click="handleMove(rowIndex, colIndex)">
+                        <div class="cell-content">{{ cell.player }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const boardSize = 11;
-        const boardElement = document.getElementById('board');
-        let currentPlayer = 'X';
-
-        // Create column labels
-        const colLabelsRow = document.createElement('div');
-        colLabelsRow.className = 'row';
-        colLabelsRow.innerHTML = '<div class="col-label"></div>'; // Empty top-left corner
-        for (let col = 0; col < boardSize; col++) {
-            const colLabel = document.createElement('div');
-            colLabel.className = 'col-label';
-            colLabel.textContent = String.fromCharCode(65 + col); // A-K
-            colLabelsRow.appendChild(colLabel);
-        }
-        boardElement.appendChild(colLabelsRow);
-
-        // Create board
-        for (let i = 0; i < boardSize; i++) {
-            const row = document.createElement('div');
-            row.className = 'row';
-            row.style.marginLeft = `${i * 17.82}px`;
-            if (i > 0) {
-                row.style.marginTop = '-11px';
-            }
-
-            // Create row label
-            const rowLabel = document.createElement('div');
-            rowLabel.className = 'row-label';
-            rowLabel.textContent = i + 1; // 1-11
-            row.appendChild(rowLabel);
-
-            for (let j = 0; j < boardSize; j++) {
-                const hex = document.createElement('div');
-                hex.className = 'hex';
-                if (j > 0) {
-                    hex.style.marginLeft = '-1px';
+    <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
+    <script>
+        new Vue({
+            el: '#app',
+            data: {
+                boardSize: 11,
+                board: Array.from({ length: 11 }, () => Array.from({ length: 11 }, () => ({ class: '', player: '' }))),
+                currentPlayer: 'playerX'
+            },
+            methods: {
+                handleMove(row, col) {
+                    if (!this.board[row][col].class) {
+                        this.$set(this.board[row], col, {
+                            class: this.currentPlayer,
+                            player: this.currentPlayer === 'playerX' ? 'X' : 'O'
+                        });
+                        this.currentPlayer = this.currentPlayer === 'playerX' ? 'playerO' : 'playerX';
+                    }
                 }
-                const hexBorder = document.createElement('div');
-                hex.appendChild(hexBorder);
-                hex.dataset.row = i;
-                hex.dataset.col = j;
-                hex.addEventListener('click', handleMove);
-                row.appendChild(hex);
             }
-            boardElement.appendChild(row);
-        }
-
-        function handleMove(event) {
-            const hex = event.target.closest('.hex');
-            if (!hex.classList.contains('playerX') && !hex.classList.contains('playerO')) {
-                hex.textContent = currentPlayer;
-                hex.classList.add(currentPlayer === 'X' ? 'playerX' : 'playerO');
-                currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
-            }
-        }
-    });
-</script>
+        });
+    </script>
 </body>
 </html>
